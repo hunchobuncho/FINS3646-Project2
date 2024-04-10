@@ -323,12 +323,20 @@ def monthly_return_cal(prc):
     returns = []
 
     monthly_prices = prc.resample('ME').last()
-    valid_months = prc.resample('ME').count() >= 18
-    monthly_returns = monthly_prices.pct_change()[valid_months]
-    monthly_returns.index = monthly_returns.index.to_period('M')
-    monthly_returns.index.name = 'Year_Month'
-    monthly_returns.name = prc.name
-    return monthly_returns
+    number_entries = prc.resample('ME').count()
+
+    indices = []
+
+    for i in range(1, len(monthly_prices)):
+        if number_entries.iloc[i] >= 18:
+            indices.append(monthly_prices.index[i])
+            monthly_return = float((monthly_prices.iloc[i] - monthly_prices.iloc[i-1])/monthly_prices.iloc[i-1])
+            returns.append(monthly_return)
+
+    ser = pd.Series(name = prc.name, index=indices, data=returns)
+    ser.index = ser.index.to_period('M')
+    ser.index.name = 'Year_Month'
+    return ser
 
 
 
