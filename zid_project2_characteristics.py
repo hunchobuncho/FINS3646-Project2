@@ -7,9 +7,15 @@
 # ----------------------------------------------------------------------------
 # Create import statements to import all modules you need in this script
 # Note: please keep the aliases consistent throughout the project.
-#       For details, review the import statements in zid_project2_main.py
+#       For details, review the import statemen
+#       ts in zid_project2_main.py
 
 # <COMPLETE THIS PART>
+import numpy as np
+import pandas as pd
+import sys
+
+import util
 
 
 # ----------------------------------------------------------------------------------------
@@ -145,8 +151,76 @@ def vol_cal(ret, cha_name, ret_freq_use: list):
      - Read to_period() documentations before converting DatetimeIndex to PeriodIndex
 
     """
+    if "Daily" in ret_freq_use:
+        # Daily calculation
+        daily_vol = ret["Daily"].copy()
 
-    # <COMPLETE THIS PART>
+        # Set how we want to group by
+        year_month_groupby = [daily_vol.index.year, daily_vol.index.month]
+
+        # Figure out the std (volatility) for every month
+        vol_values = daily_vol\
+            .groupby(by=year_month_groupby)\
+            .std()
+
+        # Figure out which months we should ignore by counting which months
+        # have less than 18 values
+        returns_per_month = daily_vol\
+            .groupby(by=year_month_groupby)\
+            .apply(lambda x: x.notnull().sum())
+
+        # Replace the volatility values of those months with None
+        vol_values[returns_per_month < 18] = None
+
+        # Replace the index of the dataframe with a PeriodIndex
+        vol_values.index = pd\
+            .to_datetime([f"{i}-{j}-01 00:00:00" for i, j in vol_values.index])\
+            .to_period("M")
+
+        # Set the name of the index to Year_Month
+        vol_values.index.name = "Year_Month"
+
+        # Change the name of each column by adding a suffix
+        vol_values = vol_values.add_suffix(f"_{cha_name}")
+
+        return vol_values
+
+    elif "Monthly" in ret_freq_use:
+
+        # Handle Monthly frequency data
+
+        monthly_data = ret["Monthly"].copy()
+
+        year_month_groupby = [monthly_data.index.year, monthly_data.index.month]
+
+        df_cha = calculate_volatility(monthly_data, year_month_groupby, cha_name)
+
+    else:
+        sys.exit("`ret_freq_use` must be either 'Daily' or 'Monthly'.")
+
+    return df_cha
+
+def calculate_volatility(data, groupby_columns, cha_name):
+    """
+    Calculate the volatility and adjust the data format.
+    """
+    # Calculate the standard deviation for each month
+    vol_values = data.groupby(by=groupby_columns).std()
+
+    # Determine the count of returns for each month
+    returns_per_month = data.groupby(by=groupby_columns).apply(lambda x: x.notnull().sum())
+
+    # Set to None where returns are less than 18 for the month
+    vol_values[returns_per_month < 18] = None
+
+    # Change index to PeriodIndex
+    vol_values.index = pd.to_datetime([f"{year}-{month}-01" for year, month in vol_values.index]).to_period("M")
+    vol_values.index.name = "Year_Month"
+
+    # Add the characteristic name as a suffix to column names
+    vol_values = vol_values.add_suffix(f"_{cha_name}")
+
+    return vol_values
 
 
 # ----------------------------------------------------------------------------
@@ -219,7 +293,21 @@ def merge_tables(ret, df_cha, cha_name):
        ensuring that modifications to the copied DataFrame do not affect the original DataFrame stored in the dictionary
      - Read shift() documentations to understand how to shift the values of a DataFrame along a specified axis
     """
-    # <COMPLETE THIS PART>
+    # Following hint 1
+    vol_cha = df_cha.copy()
+    monthly_rets = ret["Monthly"].copy()
+
+    # First, use the shift() function to shift the index by 1 period
+    # (i.e., 1 month)
+    vol_cha.index = vol_cha.index.shift(1)
+
+    # Instructions unclear on how to left-join. We will use monthly_rets as
+    # left, vol_cha as right, and use left-join.
+    merged_df = monthly_rets.join(vol_cha, how="left", on="Year_Month",
+                                  lsuffix="", rsuffix=f"_{cha_name}")
+
+    return merged_df
+
 
 
 # ------------------------------------------------------------------------------------
@@ -270,6 +358,12 @@ def cha_main(ret, cha_name, ret_freq_use: list):
         in the module with appropriate logic to handle the inputs and outputs as described.
     """
     # <COMPLETE THIS PART>
+    vol_input_sanity_check(ret, cha_name, ret_freq_use)
+    df_cha = vol_cal(ret, cha_name, ret_freq_use)
+
+    merged_df = merge_tables(ret, df_cha, cha_name)
+
+    return merged_df
 
 
 def _test_ret_dict_gen():
@@ -403,14 +497,14 @@ def _test_cha_main(ret, cha_name, ret_freq_use):
 
 
 if __name__ == "__main__":
-    pass
+    # pass
 
     # use made-up return dictionary, _test_ret_dic_gen, to test functions:
-    # made_up_ret_dict = _test_ret_dict_gen()
-    # _test_vol_input_sanity_check(made_up_ret_dict, 'vol', ['Daily',])
-    # _test_vol_cal(made_up_ret_dict, 'vol', ['Daily',])
-    # _test_merge_tables(made_up_ret_dict, 'vol', ['Daily',])
-    # _test_cha_main(made_up_ret_dict, 'vol', ['Daily',])
+    made_up_ret_dict = _test_ret_dict_gen()
+    _test_vol_input_sanity_check(made_up_ret_dict, 'vol', ['Daily',])
+    _test_vol_cal(made_up_ret_dict, 'vol', ['Daily',])
+    _test_merge_tables(made_up_ret_dict, 'vol', ['Daily',])
+    _test_cha_main(made_up_ret_dict, 'vol', ['Daily',])
 
     # use test return dictionary generated by _test_aj_ret_dict to test functions:
     # ret_dict = etl._test_aj_ret_dict(tickers=['AAPL', 'TSLA'], start='2010-05-15', end='2010-08-31')

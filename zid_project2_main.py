@@ -1,6 +1,9 @@
 """ zid_project2_main.py
 
 """
+import csv
+
+
 # ----------------------------------------------------------------------------
 # Part 1: Read the documentation for the following methods:
 #   – pandas.DataFrame.mean
@@ -21,7 +24,7 @@
 # Create import statements so that the module config.py and util.py (inside the project2 package)
 # are imported as "cfg", and "util"
 #
-# <COMPLETE THIS PART>
+import numpy as np
 
 
 # We've imported other needed scripts and defined aliases. Please keep using the same aliases for them in this project.
@@ -109,17 +112,21 @@ def portfolio_main(tickers, start, end, cha_name, ret_freq_use, q):
     # --------------------------------------------------------------------------------------------------------
     dict_ret = etl.aj_ret_dict(tickers, start, end)
 
+    print("Dict return is:", dict_ret)
     # ---------------------------------------------------------------------------------------------------------
     # Part 5: Complete cha scaffold to generate dataframe containing monthly total volatility for each stock
     #         and to make char_main function work
     # ---------------------------------------------------------------------------------------------------------
     df_cha = cha.cha_main(dict_ret, cha_name,  ret_freq_use)
 
+    print("Df cha is:", df_cha)
     # -----------------------------------------------------------------------------------------------------------
     # Part 6: Read and understand functions in pf scaffold. You will need to utilize functions there to
     #         complete some of the questions in Part 7
     # -----------------------------------------------------------------------------------------------------------
     df_portfolios = pf.pf_main(df_cha, cha_name, q)
+
+    print("Df portfolios is:", df_portfolios)
 
     util.color_print('Portfolio Construction All Done!')
 
@@ -169,8 +176,9 @@ def get_avg(df: pd.DataFrame, year):
         dtype: float64
 
     """
-    # <COMPLETE THIS PART>
-
+    df_year = df[df.index.year == year]
+    average_returns = df_year.mean(axis=0)
+    return average_returns
 
 def get_cumulative_ret(df):
     """ Returns cumulative returns for input DataFrame.
@@ -197,8 +205,8 @@ def get_cumulative_ret(df):
         where r1, ..., rN represents monthly returns
 
     """
-    # <COMPLETE THIS PART>
-
+    cumulative_ret = (1 + df).cumprod() - 1
+    return cumulative_ret
 
 # ----------------------------------------------------------------------------
 # Part 8: Answer questions
@@ -245,13 +253,13 @@ def get_cumulative_ret(df):
 #     ticker for this stock.
 #     Use the output dictionary, DM_Ret_dict, and auxiliary function in this script
 #     to do the calculation.
-Q1_ANSWER = '?'
+Q1_ANSWER = 'NVDA'
 
 
 # Q2: What is the daily average return of the stock in question 1 for the year 2008.
 #     Use the output dictionary, DM_Ret_dict, and auxiliary function in this script
 #     to do the calculation.
-Q2_ANSWER = '?'
+Q2_ANSWER = '-0.004240838144502279'
 
 
 # Q3: Which stock in your sample has the highest average monthly return for the
@@ -259,26 +267,26 @@ Q2_ANSWER = '?'
 #     ticker for this stock.
 #     Use the output dictionary, DM_Ret_dict, and auxiliary function in this script
 #     to do the calculation.
-Q3_ANSWER = '?'
+Q3_ANSWER = 'AAPL'
 
 
 # Q4: What is the average monthly return of the stock in question 3 for the year 2019.
 #     Use the output dictionary, DM_Ret_dict, and auxiliary function in this script
 #     to do the calculation.
-Q4_ANSWER = '?'
+Q4_ANSWER = '0.05663463742976457'
 
 
 # Q5: What is the average monthly total volatility for stock 'TSLA' in the year 2010?
 #     Use the output dataframe, Vol_Ret_mrg_df, and auxiliary function in this script
 #     to do the calculation.
-Q5_ANSWER = '?'
+Q5_ANSWER = '0.041407897077777645'
 
 
 # Q6: What is the ratio of the average monthly total volatility for stock 'V'
 #     in the year 2008 to that in the year 2018? Keep 1 decimal places.
 #     Use the output dataframe, Vol_Ret_mrg_df, and auxiliary function in this script
 #     to do the calculation.
-Q6_ANSWER = '?'
+Q6_ANSWER = '2.6'
 
 
 # Q7: How many effective year-month for stock 'TSLA' in year 2010. An effective year-month
@@ -286,28 +294,27 @@ Q6_ANSWER = '?'
 #     are not null.
 #     Use the output dataframe, Vol_Ret_mrg_df, to do the calculation.
 #     Answer should be an integer
-Q7_ANSWER = '?'
+Q7_ANSWER = '122'
 
 
 # Q8: How many rows and columns in the EW_LS_pf_df data frame?
 #     Answer should be two integer, the first represent number of rows and the two numbers need to be
 #     separated by a comma.
-Q8_ANSWER = '?'
+Q8_ANSWER = '234, 4'
 
 
 # Q9: What is the average equal weighted portfolio return of the quantile with the
 #     lowest total volatility for the year 2019?
 #     Use the output dataframe, EW_LS_pf_d, and auxiliary function in this script
 #     to do the calculation.
-Q9_ANSWER = '?'
+Q9_ANSWER = '0.019546444313242817'
 
 
 # Q10: What is the cumulative portfolio return of the total volatility long-short portfolio
 #      over the whole sample period?
 #      Use the output dataframe, EW_LS_pf_d, and auxiliary function in this script
 #     to do the calculation.
-Q10_ANSWER = '?'
-
+Q10_ANSWER = '1.0184698615759582'
 
 # ----------------------------------------------------------------------------
 # Part 9: Add t_stat function
@@ -328,15 +335,33 @@ Q10_ANSWER = '?'
 # Please replace the '?' of ls_bar, ls_t and n_obs variables below
 # with the respective values of the 'ls' column in EW_LS_pf_df from Part 8,
 # keep 4 decimal places if it is not an integer:
-ls_bar = '?'
-ls_t = '?'
-n_obs = '?'
-# ls_bar = '0.0073'
-# ls_t = '1.3847'
-# n_obs = '235'
+ls_bar = '0.0061'
+ls_t = '1.1837'
+n_obs = '234'
 
-# <ADD THE t_stat FUNCTION HERE>
 
+def t_stat():
+    """
+    Auxiliary function to calculate the mean, t-statistic, and number of observations for the 'ls' column in the
+    EW_LS_pf_df DataFrame.
+
+    Returns
+    -------
+    result
+        A DataFrame with columns 'ls_bar', 'ls_t', and 'n_obs' representing the mean, t-statitistic and number of
+        observations respectively.
+    """
+    ew_ls_pf_df = pd.read_csv('EW_LS_pf_df.csv', index_col=0)
+    ew_ls_pf_df.index = pd.to_datetime(ew_ls_pf_df.index)
+
+    ls_bar = ew_ls_pf_df['ls'].mean()
+    ls_std = ew_ls_pf_df['ls'].std()
+    n_obs = len(ew_ls_pf_df['ls'].dropna())
+    ls_t = ls_bar / (ls_std / np.sqrt(n_obs))
+
+    result = pd.DataFrame({'ls_bar': [ls_bar], 'ls_t': [ls_t], 'n_obs': [n_obs]})
+
+    return result
 
 # ----------------------------------------------------------------------------
 # Part 10: project 2 mini-presentation
@@ -419,9 +444,106 @@ def _test_get_cumulative_ret():
     util.test_print('\n'.join(to_print))
 
 
-if __name__ == "__main__":
-    pass
+# Function to help solve questions using the output files from portfolio_main and auxiliary functions
+def solve_questions():
 
+    # Q1: Which stock in your sample has the lowest average daily return for the year 2008 (ignoring missing values)?
+    #     Your answer should include the ticker for this stock.
+    dm_ret_df_daily = pd.read_csv('DM_Ret_dict_daily.csv', index_col=0)
+    dm_ret_df_daily.index = pd.to_datetime(dm_ret_df_daily.index)
+    q1_df_daily_ret = get_avg(dm_ret_df_daily, 2008)
+    q1_answer = q1_df_daily_ret.idxmin()
+    print("Answer to q1 is:", q1_answer)
+
+    # Q2: What is the daily average return of the stock in question 1 for the year 2008.
+    q2_answer = q1_df_daily_ret.min()
+    print("Answer to q2 is:", q2_answer)
+
+    # Alternate way to check Q2:
+    stock_q1 = dm_ret_df_daily[q1_answer]
+    q2_answer = get_avg(stock_q1, 2008)
+    print("Answer to q2 (second try) is:", q2_answer)
+
+    # Q3: Which stock in your sample has the highest average monthly return for the year 2019 (ignoring missing values)?
+    #     Your answer should include the ticker for this stock.
+    dm_ret_df_monthly = pd.read_csv('DM_Ret_dict_monthly.csv', index_col=0)
+    dm_ret_df_monthly.index = pd.to_datetime(dm_ret_df_monthly.index)
+    q3_df_monthly_ret = get_avg(dm_ret_df_monthly, 2019)
+    q3_answer = q3_df_monthly_ret.idxmax()
+    print("Answer to q3 is:", q3_answer)
+
+    # Q4: What is the average monthly return of the stock in question 3 for the year 2019.
+    q4_answer = q3_df_monthly_ret.max()
+    print("Answer to q4 is:", q4_answer)
+
+    # Alternate way to check Q4:
+    stock_q3 = dm_ret_df_monthly[q3_answer]
+    q4_answer = get_avg(stock_q3, 2019)
+    print("Answer to q4 (second try) is:", q4_answer)
+
+    # Q5: What is the average monthly total volatility for stock 'TSLA' in the year 2010?
+    vol_ret_mrg_df = pd.read_csv('Vol_Ret_mrg_df.csv', index_col=0)
+    vol_ret_mrg_df.index = pd.to_datetime(vol_ret_mrg_df.index)
+    tsla_vol = vol_ret_mrg_df['tsla_vol']
+    q5_answer = get_avg(tsla_vol, 2010)
+    print("Answer to q5 is:", q5_answer)
+
+    # Q6: What is the ratio of the average monthly total volatility for stock 'V'
+    #     in the year 2008 to that in the year 2018? Keep 1 decimal place.
+    v_vol = vol_ret_mrg_df['v_vol']
+    v_vol_2008 = get_avg(v_vol, 2008)
+    v_vol_2018 = get_avg(v_vol, 2018)
+    q6_answer = round(v_vol_2008 / v_vol_2018, 1)
+    print("Answer to q6 is:", q6_answer)
+
+    # Q7: How many effective year-month for stock 'TSLA' in year 2010.
+    #     An effective year-month row means both monthly return in 'tsla' column
+    #     and total volatility in 'tsla_vol' are not null.
+    tsla_effective_2010 = vol_ret_mrg_df['tsla'].notnull() & vol_ret_mrg_df['tsla_vol'].notnull()
+    q7_answer = tsla_effective_2010.sum()
+    print("Answer to q7 is:", q7_answer)
+
+    # Q8: How many rows and columns in the EW_LS_pf_df data frame?
+    ew_ls_pf_df = pd.read_csv('EW_LS_pf_df.csv', index_col=0)
+    ew_ls_pf_df.index = pd.to_datetime(ew_ls_pf_df.index)
+    q8_answer = f"Rows: {ew_ls_pf_df.shape[0]}, Columns: {ew_ls_pf_df.shape[1]}"
+    print("Answer to q8 is:", q8_answer)
+
+    # Q9: What is the average equal weighted portfolio return of the quantile with the
+    #     lowest total volatility for the year 2019?
+    q9_answer = get_avg(ew_ls_pf_df['ewp_rank_1'], 2019)
+    print("Answer to q9 is:", q9_answer)
+
+    # # Q10: What is the cumulative portfolio return of the total volatility long-short portfolio
+    # #      over the whole sample period?
+    q10_answer = get_cumulative_ret(ew_ls_pf_df['ls']).iloc[-1]
+    print("Answer to q10 is:", q10_answer)
+
+
+if __name__ == "__main__":
+    # Testing auxiliary functions
+    # print("Testing 6A:")
+    # _test_get_avg()
+    #
+    # print("\nTesting 6B:")
+    # _test_get_cumulative_ret()
+
+    # Creating files for Q1
+    # tickers = list(cfg.TICMAP.keys())
+    # start = '2000-12-29'
+    # end = '2021-08-31'
+    # cha_name = 'vol'
+    # ret_freq_use = ['Daily', ]
+    # q = 3
+    # dict_ret, df_cha, df_portfolios = portfolio_main(tickers, start, end, cha_name, ret_freq_use, q)
+    #
+    # dict_ret['Daily'].to_csv('DM_Ret_dict_daily.csv')
+    # dict_ret['Monthly'].to_csv('DM_Ret_dict_monthly.csv')
+    # df_cha.to_csv('Vol_Ret_mrg_df.csv')
+    # df_portfolios.to_csv('EW_LS_pf_df.csv')
+
+    # solve_questions()
+    # t_stat()
 
 
 
