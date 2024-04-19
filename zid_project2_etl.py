@@ -114,8 +114,10 @@ def read_prc_csv(tic, start, end, prc_col='Adj Close'):
         for row in file_reader:
             date = row[0]
             if start <= date <= end:
-                dates.append(date)
-                prices.append(float(row[index]))
+                price_str = row[index]
+                if price_str != '':
+                    prices.append(float(price_str))
+                    dates.append(date)
         ser = pd.Series(data=prices, index=pd.to_datetime(dates), name=tic.lower())
         ser.index.name = header_columns[0]
         return ser
