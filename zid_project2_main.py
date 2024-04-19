@@ -382,8 +382,8 @@ def t_stat():
 # Please use Zoom to record it. The final submission should be a zoom recording link.
 
 # Please replace the '?' with your team's presentation video zoom link and its password:
-Presentation_zoom_link = '?'
-Password_of_your_video = '?'
+Presentation_zoom_link = 'https://unsw-my.sharepoint.com/personal/z5436463_ad_unsw_edu_au/_layouts/15/stream.aspx?id=%2Fpersonal%2Fz5436463%5Fad%5Funsw%5Fedu%5Fau%2FDocuments%2FFINS3646%5FTeam%2013%20Final%20presentation%2Emp4&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&ga=1&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview'
+Password_of_your_video = '' # There's no password
 
 
 def _test_get_avg():
