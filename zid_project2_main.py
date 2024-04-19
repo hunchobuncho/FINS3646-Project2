@@ -543,9 +543,4 @@ if __name__ == "__main__":
     # df_portfolios.to_csv('EW_LS_pf_df.csv')
 
     # solve_questions()
-    # t_stat()
-
-
-
-
-
+    t_stat()
